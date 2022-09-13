@@ -261,14 +261,23 @@ def save_plans():
     # Save the plans dict to the filepath
     try:
         plans_as_json = json.dumps(plans)
-        my_file = open(file_path, "w")
-        my_file.write(plans_as_json)
-        my_file.close()
-        print("Plans saved!")
+        if write_to_file(file_path, plans_as_json):
+            print("Plans saved!")
+        else:
+            print("Failed to save plans")
     except:
         print("Could not save plans. Does the program have write permission to the following path: " + workdir + "?")
-
     time.sleep(1)
+
+
+def write_to_file(custom_file_path, content):
+    try:
+        my_file = open(custom_file_path, "w")
+        my_file.write(content)
+        my_file.close()
+        return True
+    except:
+        return False
 
 
 # Don't show the menu before the user is done reading
@@ -277,11 +286,25 @@ def show_how_to_exit():
     input()
 
 
+# Download the example plan, and load it
 def download_example_plan():
-    url = 'http://example.com/'
-    response = urllib.request.urlopen(url)
-    data = response.read()  # a `bytes` object
-    text = data.decode('utf-8')  # a `str`; this step can't be used if data is binary
+    example_plan_url = 'https://github.com/Johannett321/acit4420-oblig1/blob/main/CodePlans/ExamplePlans.json?raw=true'
+
+    # Download example plan
+    print("Downloading example plan...")
+    response = urllib.request.urlopen(example_plan_url)
+    data = response.read()
+    text = data.decode('utf-8')
+    write_to_file(workdir + os.path.sep + "ExamplePlan.json", text)
+    print("Example plan downloaded! Loading the plan...")
+    time.sleep(2)
+
+    # Load exampleplan
+    global file_path
+    file_path = workdir + os.path.sep + 'ExamplePlan.json'
+    load_plans(False)
+
+    show_how_to_exit()
 
 # Start the program
 startup()
