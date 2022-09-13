@@ -33,7 +33,7 @@ def startup():
     # Check if the workdir has any previously stored plans.
     if Path(file_path).exists():
         def found_plans():
-            print("CodePlans automatically found saved plans. Would you like to load them? (y/n)")
+            print("CodePlans automatically found some saved plans. Would you like to load them? (y/n)")
             preload_plans = input()
             if preload_plans == 'y':
                 load_plans(allow_filename_change=False)
@@ -125,12 +125,16 @@ def show_all_plans():
         print(day + ":")
         # If the day has plans: print them, if not: print no plans
         if day in plans.keys():
-            # For every plan in an ascending sorted plans dictionary,
-            # print the plan
-            for plan in sorted(plans[day], key=plans.get('start_time'), reverse=True):
-                print('    ' + plans[day][plan]['start_time'] + ' - ' + plans[day][plan][
-                    'end_time'] + ' ' +
-                      plans[day][plan]['title'])
+            # Get the time millis of the item
+            def get_time_as_millis(item):
+                # Time is valid
+                time_str = '2022-01-01 ' + item[1]["start_time"] + ":00"
+                time_format = '%Y-%m-%d %H:%M:%S'
+                return datetime.strptime(time_str, time_format).timestamp()*1000
+
+            # Sort and print the plan in the correct order
+            for plan in sorted(plans[day].items(), key=get_time_as_millis, reverse=False):
+                print(f'    {plan[1]["start_time"]} - {plan[1]["end_time"]} {plan[1]["title"]}')
         else:
             print('    --No plans--')
     show_how_to_exit()
@@ -254,10 +258,6 @@ def save_plans():
     # Custom file name or default?
     ask_user_for_custom_file_name()
 
-    # Create the workdir if it does not exist
-    if not os.path.exists(workdir):
-        os.makedirs(workdir)
-
     # Save the plans dict to the filepath
     try:
         plans_as_json = json.dumps(plans)
@@ -271,6 +271,10 @@ def save_plans():
 
 
 def write_to_file(custom_file_path, content):
+    # Create the workdir if it does not exist
+    if not os.path.exists(workdir):
+        os.makedirs(workdir)
+
     try:
         my_file = open(custom_file_path, "w")
         my_file.write(content)
