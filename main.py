@@ -175,7 +175,7 @@ def load_plans_file():
 # Add a plan to plans dict
 def add_plan():
     # Ask user for day
-    print("Which day would you like to add something to?")
+    print("Which day would you like to add a plan to?")
     day = input().lower()
 
     # Let user exit to main menu
