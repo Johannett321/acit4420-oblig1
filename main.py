@@ -295,13 +295,19 @@ def download_example_plan():
     example_plan_url = 'https://github.com/Johannett321/acit4420-oblig1/blob/main/CodePlans/ExamplePlans.json?raw=true'
 
     # Download example plan
-    print("Downloading example plan...")
-    response = urllib.request.urlopen(example_plan_url)
-    data = response.read()
-    text = data.decode('utf-8')
-    write_to_file(workdir + os.path.sep + "ExamplePlan.json", text)
-    print("Example plan downloaded! Loading the plan...")
-    time.sleep(2)
+    try:
+        print("Downloading example plan...")
+        response = urllib.request.urlopen(example_plan_url)
+        data = response.read()
+        text = data.decode('utf-8')
+        write_to_file(workdir + os.path.sep + "ExamplePlan.json", text)
+        print("Example plan downloaded! Loading the plan...")
+        time.sleep(2)
+    except:
+        print("Could not download example plan. Is your computer connected to the internet?")
+        time.sleep(2)
+        return
+
 
     # Load exampleplan
     global file_path
