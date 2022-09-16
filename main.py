@@ -8,21 +8,21 @@ import urllib.request
 from datetime import datetime
 from pathlib import Path
 
-# -------- GLOBALS -------- #
-version = '1.0'
+# -------- GLOBAL VARIABLES -------- #
+_version = '1.1'
 
 # Stored plans
 plans = {}
-available_days = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
+_available_days = ("monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday")
 
 # Working directory and savefile path
 workdir = os.getcwd() + os.path.sep + "CodePlans"
 file_path = workdir + os.path.sep + 'MainPlans.json'
 
-# -------- MAIN -------- #
+# -------- FUNCTIONS -------- #
 print()
 print('--------------------------------------')
-print('      Welcome to CodePlans ' + version)
+print('      Welcome to CodePlans ' + _version)
 print('--------------------------------------')
 print()
 time.sleep(1)
@@ -52,61 +52,66 @@ def startup():
 def show_menu():
     print()
     print("------------ MAIN MENU ------------")
+    # Menu options
     menu_options = ("1) Load plans from savefile", "2) Add a plan to your plans",
                     "3) Show plans for a day", "4) Show all plans for all days",
                     "5) Save all plans", "6) Download an example plan", "7) Where am i?", "8) Exit CodePlans")
+    # Print menu options
     for option in menu_options:
         print(option)
 
+    # Get user input
     print("Choose option:", end=" ")
     chosen_menu_option = input().lower()
     print("-----------------------------------")
 
     # Process the user input. Which menu option did the user choose?
     if chosen_menu_option == '1':
-        load_plans()
+        load_plans()                # Load
     elif chosen_menu_option == '2':
-        add_plan()
+        add_plan()                  # Add
     elif chosen_menu_option == '3':
-        show_plans()
+        show_plans()                # Show plan for single day
     elif chosen_menu_option == '4':
-        show_all_plans()
+        show_all_plans()            # Show all plans
     elif chosen_menu_option == '5':
-        save_plans()
+        save_plans()                # Save
     elif chosen_menu_option == '6':
-        download_example_plan()
+        download_example_plan()     # Example plan
     elif chosen_menu_option == '7':
-        # Print working directory
         print("Your working directory (the folder where the plans are saved) is at: " + workdir)
-        show_how_to_exit()
+        # Wait showing menu till user presses enter
+        show_how_to_exit()          # Print working directory
     elif chosen_menu_option == '8' or chosen_menu_option == 'exit':
-        # Close the application
         print("Bye!")
         time.sleep(1)
         print('--------------------------------------')
-        exit(0)
+        exit(0)                     # Close the application
     else:
+        # The user has typed in a command that is not recognized
         print('"' + chosen_menu_option + '"' + " is not listed as an option." +
               "Please type the digit in front of the menu option you want. For example '3'")
 
-    # Show the menu again after a process is done
+    # Show the menu again after a process is done.
+    # This ensures a loop, and that the program is
+    # never closed unless the user closes it.
     show_menu()
 
 
 # Show all plans for a specific day
 def show_plans():
-    # What day?
+    # Ask what day to show
     print("What day would you like to see?")
     what_day = input().lower()
 
     # Check if the day submitted by the user is a real day
-    if what_day not in available_days:
+    if what_day not in _available_days:
         print(what_day + " is not a day!")
         show_plans()
         return
 
-    # Does the plans dictionary contain that day? If not,
-    # there are no plans for that day.
+    # Check if plans dictionary contain that day? If not,
+    # inform user that there are no plans for that day.
     if what_day in plans:
         print("Plans for " + what_day + ":")
         for plan in plans[what_day]:
@@ -115,28 +120,31 @@ def show_plans():
     else:
         print(what_day + " has no plans")
 
+    # Wait showing menu till user presses enter
     show_how_to_exit()
 
 
 # Show all plans for all days
 def show_all_plans():
     print("------- THIS WEEKS SCHEDULE -------")
-    for day in available_days:
+    for day in _available_days:
         print(day + ":")
-        # If the day has plans: print them, if not: print no plans
+        # If the day has plans: print them, if not: print "no plans"
         if day in plans.keys():
             # Get the time millis of the item
             def get_time_as_millis(item):
                 # Time is valid
                 time_str = '2022-01-01 ' + item[1]["start_time"] + ":00"
                 time_format = '%Y-%m-%d %H:%M:%S'
-                return datetime.strptime(time_str, time_format).timestamp()*1000
+                return datetime.strptime(time_str, time_format).timestamp() * 1000
 
-            # Sort and print the plan in the correct order
+            # Sort the plan by millisecond and print the plan in the correct order
             for plan in sorted(plans[day].items(), key=get_time_as_millis, reverse=False):
                 print(f'    {plan[1]["start_time"]} - {plan[1]["end_time"]} {plan[1]["title"]}')
         else:
             print('    --No plans--')
+
+    # Wait showing menu till user presses enter
     show_how_to_exit()
 
 
@@ -146,6 +154,7 @@ def load_plans(allow_filename_change=True):
     if allow_filename_change:
         ask_user_for_custom_file_name()
 
+    # Load the plans from the file
     global plans
     loaded_plans = load_plans_file()
     if loaded_plans is not None:
@@ -154,20 +163,18 @@ def load_plans(allow_filename_change=True):
 
 # Loads plans from filepath
 def load_plans_file():
+    # Does the file exist?
     try:
-        # Does the file exist?
+        # Read the file in the path
         my_file = open(file_path, "r")
         plans_txt = my_file.read()
+        my_file.close()
 
-        try:
-            my_file.close()
-            # Can the JSON data stored in the file be parsed to the 'plans' dict?
-            parsed_json = json.loads(plans_txt)
-            print("Plans loaded!")
-            time.sleep(1)
-            return parsed_json
-        except:
-            print("Could not parse JSON")
+        # Try parsing the JSON string from the file into a dict, and return the dict
+        parsed_json = json.loads(plans_txt)
+        print("Plans loaded!")
+        time.sleep(1)
+        return parsed_json
     except:
         print(f"Could not find the plans file: '{file_path}'. Does the program "
               f"have reading permission to this directory, and does the file exist?")
@@ -187,7 +194,7 @@ def add_plan():
         return
 
     # Check if the day submitted by the user is a real day
-    if day not in available_days:
+    if day not in _available_days:
         print(day + " is not a day!")
         add_plan()
         return
@@ -243,14 +250,14 @@ def ask_user_for_custom_file_name():
     global file_path
     # If user specifies filename: use it, if not: use default
     if wanted_file_name != "":
-        file_path = workdir + os.path.sep + wanted_file_name + ".json"
+        file_path = workdir + os.path.sep + wanted_file_name + ".json"      # Custom plan
     else:
-        file_path = workdir + os.path.sep + 'MainPlans.json'
+        file_path = workdir + os.path.sep + 'MainPlans.json'                # Default plan
 
 
 # Store the plans dict in the filepath
 def save_plans():
-    # Check if there are any plans at all in the dictionary
+    # Make sure the dictionary is not empty. If empty: print 'no plans' and return
     if plans == {} or plans is None:
         print("There are no plans to save")
         return
@@ -275,6 +282,7 @@ def write_to_file(custom_file_path, content):
     if not os.path.exists(workdir):
         os.makedirs(workdir)
 
+    # Write the content provided to the file
     try:
         my_file = open(custom_file_path, "w")
         my_file.write(content)
@@ -296,25 +304,30 @@ def download_example_plan():
 
     # Download example plan
     try:
+        # Download the plan data
         print("Downloading example plan...")
         response = urllib.request.urlopen(example_plan_url)
         data = response.read()
         text = data.decode('utf-8')
+
+        # Write the downloaded data to the 'ExamplePlan.json' file
         write_to_file(workdir + os.path.sep + "ExamplePlan.json", text)
         print("Example plan downloaded! Loading the plan...")
         time.sleep(2)
     except:
+        # Failed to download, return
         print("Could not download example plan. Is your computer connected to the internet?")
         time.sleep(2)
         return
-
 
     # Load exampleplan
     global file_path
     file_path = workdir + os.path.sep + 'ExamplePlan.json'
     load_plans(False)
 
+    # Wait showing menu till user presses enter
     show_how_to_exit()
+
 
 # Start the program
 startup()
